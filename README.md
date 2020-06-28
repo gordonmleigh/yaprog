@@ -38,12 +38,12 @@ interface ProgressBarOptions {
 
 ```typescript
 interface ProgressBar {
+  progress: number;
+  total: number;
+  tokens: ProgressBarTokens;
   clear(): void;
-  getProgress(): number;
-  getTotal(): number;
   log(message: string, tokens?: ProgressBarTokens): void;
   render(force?: boolean, tokens?: ProgressBarTokens): void;
-  setTotal(value: number): void;
   update(current: number, total?: number, tokens?: ProgressBarTokens): void;
   update(current: number, tokens: ProgressBarTokens): void;
 }

@@ -15,12 +15,12 @@ export interface ProgressBarTokens {
 }
 
 export interface ProgressBar {
+  progress: number;
+  total: number;
+  tokens: ProgressBarTokens;
   clear(): void;
-  getProgress(): number;
-  getTotal(): number;
   log(message: string, tokens?: ProgressBarTokens): void;
   render(force?: boolean, tokens?: ProgressBarTokens): void;
-  setTotal(value: number): void;
   update(current: number, total?: number, tokens?: ProgressBarTokens): void;
   update(current: number, tokens: ProgressBarTokens): void;
 }
@@ -53,14 +53,6 @@ export function makeProgressBar(
     }
     stream.clearLine(0);
     stream.cursorTo(0);
-  }
-
-  function getProgress(): number {
-    return current;
-  }
-
-  function getTotal(): number {
-    return total;
   }
 
   function log(message: string): void {
@@ -136,10 +128,6 @@ export function makeProgressBar(
     }
   }
 
-  function setTotal(value: number): void {
-    total = value;
-  }
-
   function update(
     current: number,
     total?: number,
@@ -163,12 +151,33 @@ export function makeProgressBar(
   }
 
   return {
+    get progress(): number {
+      return current;
+    },
+
+    set progress(value: number) {
+      current = value;
+    },
+
+    get total(): number {
+      return total;
+    },
+
+    set total(value: number) {
+      total = value;
+    },
+
+    get tokens(): ProgressBarTokens {
+      return savedTokens;
+    },
+
+    set tokens(value: ProgressBarTokens) {
+      savedTokens = value;
+    },
+
     clear,
-    getProgress,
-    getTotal,
     log,
     render: renderThrottle ? throttle(render, renderThrottle) : render,
-    setTotal,
     update,
   };
 }
