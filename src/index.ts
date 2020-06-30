@@ -55,7 +55,8 @@ export function makeProgressBar(
     stream.cursorTo(0);
   }
 
-  function log(message: string): void {
+  function log(message: string, tokens?: ProgressBarTokens): void {
+    message = replaceTokens(message, { ...savedTokens, ...tokens });
     const nl = message.indexOf('\n');
 
     if (nl < 0) {
