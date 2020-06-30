@@ -16,7 +16,8 @@
     "clean": "rm -rf lib/ dist/",
     "compile": "tsc",
     "lint": "eslint src/ --ext=ts,tsx",
-    "prepack": "yarn build",
+    "postversion": "git push --follow-tags",
+    "preversion": "yarn build",
     "watch:compile": "tsc --incremental --preserveWatchOutput --watch"
   },
   "files": [
