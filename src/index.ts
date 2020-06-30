@@ -6,6 +6,7 @@ export interface ProgressBarOptions {
   renderThrottle?: number;
   start?: number;
   stream?: NodeJS.WriteStream;
+  tokens?: ProgressBarTokens;
   total?: number;
   width?: number;
 }
@@ -19,6 +20,7 @@ export interface ProgressBar {
   total: number;
   tokens: ProgressBarTokens;
   clear(): void;
+  finish(): void;
   log(message: string, tokens?: ProgressBarTokens): void;
   render(force?: boolean, tokens?: ProgressBarTokens): void;
   update(current: number, total?: number, tokens?: ProgressBarTokens): void;
@@ -35,17 +37,18 @@ export function makeProgressBar(
     renderThrottle = 16,
     start = Date.now(),
     stream = process.stderr,
-    total: startTotal = 0,
+    tokens: initialTokens = {},
+    total: initialTotal = 0,
     width = 40,
   } = typeof optsOrTotal === 'number' ? { total: optsOrTotal } : optsOrTotal;
 
   const isTTY = !!stream.isTTY; // this is actually undefined for non-TTYs
-  let savedTokens: ProgressBarTokens = {};
+  let savedTokens: ProgressBarTokens = initialTokens || {};
 
   let lastRenderTime = 0;
   let lastRenderText = '';
   let current = 0;
-  let total = startTotal;
+  let total = initialTotal;
 
   function clear() {
     if (!isTTY) {
@@ -55,8 +58,27 @@ export function makeProgressBar(
     stream.cursorTo(0);
   }
 
+  function finish() {
+    if (!isTTY) {
+      return;
+    }
+    stream.write('\n');
+  }
+
   function log(message: string, tokens?: ProgressBarTokens): void {
-    message = replaceTokens(message, { ...savedTokens, ...tokens });
+    const progress = current / total;
+    const percent = Math.floor(100 * progress);
+    const elapsed = (Date.now() - start) / 1000;
+
+    message = replaceTokens(message, {
+      elapsed: elapsed.toFixed(0),
+      percent: percent + '%',
+      rate: current / elapsed,
+      ...savedTokens,
+      ...tokens,
+      current,
+      total,
+    });
     const nl = message.indexOf('\n');
 
     if (nl < 0) {
@@ -117,7 +139,7 @@ export function makeProgressBar(
 
     const bar = ''
       .padEnd(barLength, completeChar)
-      .padEnd(width - barLength, incompleteChar);
+      .padEnd(renderWidth, incompleteChar);
 
     barText = replaceTokens(barText, { bar });
 
@@ -177,21 +199,22 @@ export function makeProgressBar(
     },
 
     clear,
+    finish,
     log,
     render: renderThrottle ? throttle(render, renderThrottle) : render,
     update,
   };
 }
 
-function replaceTokens(
-  str: string,
-  tokens: Record<string, string | number>,
-): string {
+function replaceTokens(str: string, tokens: ProgressBarTokens): string {
   for (const token in tokens) {
-    str = str.replace(
-      new RegExp(`:${token}(:|\\b)`, 'g'),
-      tokens[token].toString(),
-    );
+    let value: any;
+    if (typeof tokens[token] === 'function') {
+      value = tokens[token](tokens);
+    } else {
+      value = tokens[token].toString();
+    }
+    str = str.replace(new RegExp(`:${token}(:|\\b)`, 'g'), value);
   }
   return str;
 }
