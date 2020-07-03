@@ -45,10 +45,11 @@ export function makeProgressBar(
   const isTTY = !!stream.isTTY; // this is actually undefined for non-TTYs
   let savedTokens: ProgressBarTokens = initialTokens || {};
 
-  let lastRenderTime = 0;
   let lastRenderText = '';
   let current = 0;
   let total = initialTotal;
+
+  const render = renderThrottle ? throttle(_render, renderThrottle) : _render;
 
   function clear() {
     if (!isTTY) {
@@ -105,19 +106,12 @@ export function makeProgressBar(
     stream.write('\n');
   }
 
-  function render(force = false, tokens?: ProgressBarTokens): void {
+  function _render(): void {
     if (!isTTY) {
       return;
     }
-    savedTokens = { ...savedTokens, ...tokens };
 
-    // throttle rendering to improve performance
     const now = Date.now();
-    if (!force && now - lastRenderTime < renderThrottle) {
-      return;
-    }
-    lastRenderTime = now;
-
     const progress = current / total;
     const percent = Math.floor(100 * progress);
     const elapsed = (now - start) / 1000;
@@ -170,7 +164,8 @@ export function makeProgressBar(
     if (typeof newTotal !== 'undefined') {
       total = newTotal;
     }
-    render(false, tokens);
+    savedTokens = { ...savedTokens, ...tokens };
+    render();
   }
 
   return {
@@ -201,7 +196,7 @@ export function makeProgressBar(
     clear,
     finish,
     log,
-    render: renderThrottle ? throttle(render, renderThrottle) : render,
+    render,
     update,
   };
 }
