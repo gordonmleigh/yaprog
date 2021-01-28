@@ -114,7 +114,7 @@ export function makeProgressBar(
     newTotal?: number | TokenCollection,
     tokens?: TokenCollection,
   ): void {
-    if (typeof newTotal !== 'number') {
+    if (typeof newTotal !== 'number' && typeof newTotal !== 'undefined') {
       tokens = newTotal;
       newTotal = undefined;
     }
