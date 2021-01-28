@@ -1,4 +1,5 @@
-import { makeProgressBar, ProgressBarTokens } from '.';
+import { makeProgressBar } from './ProgressBar';
+import { TokenCollection } from './replaceTokens';
 
 async function testRenderDefaults(): Promise<void> {
   const bar = makeProgressBar(
@@ -21,9 +22,10 @@ async function testLog(): Promise<void> {
     20,
   );
   const total = 10;
+  bar.total = total;
 
   for (let i = 1; i <= total; ++i) {
-    bar.update(i, total, { custom: i * Math.PI });
+    bar.update(i, { custom: i * Math.PI });
     if (i % 2 === 0) {
       bar.log(`:remaining to go (of :total)`, { remaining: total - i });
     }
@@ -39,9 +41,10 @@ async function testFunctionToken(): Promise<void> {
     {
       total: 20,
       tokens: {
-        pcurrent: (tokens: ProgressBarTokens) =>
-          (tokens.current / 1000).toFixed(0),
-        ptotal: (tokens: ProgressBarTokens) => (tokens.total / 1000).toFixed(0),
+        pcurrent: (tokens: TokenCollection) =>
+          ((tokens.current as number) / 1000).toFixed(0),
+        ptotal: (tokens: TokenCollection) =>
+          ((tokens.total as number) / 1000).toFixed(0),
       },
     },
   );
@@ -49,7 +52,7 @@ async function testFunctionToken(): Promise<void> {
 
   for (let i = 0; i <= total; i += 1000) {
     bar.update(i, total, {
-      pi: (tokens: ProgressBarTokens) => Math.PI * tokens.current,
+      pi: (tokens: TokenCollection) => Math.PI * (tokens.current as number),
     });
     await delay();
   }

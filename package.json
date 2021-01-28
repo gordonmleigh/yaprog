@@ -18,7 +18,6 @@
     "lint": "eslint src/ --ext=ts,tsx",
     "postversion": "git push --follow-tags",
     "preversion": "yarn build",
-    "test": "node -r ts-node/register src/test.ts",
     "watch:compile": "tsc --incremental --preserveWatchOutput --watch"
   },
   "files": [
@@ -34,11 +33,9 @@
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-prettier": "^3.1.4",
+    "modernscript": "^0.1.0",
     "prettier": "^2.0.5",
-    "ts-node": "^8.10.2",
     "typescript": "^3.9.5"
   },
-  "dependencies": {
-    "lodash.throttle": "^4.1.1"
-  }
+  "dependencies": {}
 }
