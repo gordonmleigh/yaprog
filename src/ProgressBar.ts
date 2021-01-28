@@ -1,6 +1,10 @@
 import { ConsoleStatus } from './ConsoleStatus';
 import { replaceTokens, TokenCollection } from './replaceTokens';
 
+export interface ProgressBarTokens {
+  [key: string]: any;
+}
+
 export interface ProgressBarOptions {
   completeChar?: string;
   incompleteChar?: string;
